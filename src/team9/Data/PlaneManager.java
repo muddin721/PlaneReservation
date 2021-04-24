@@ -6,7 +6,7 @@ import team9.Data.PClass.SeatType;
 
 public class PlaneManager {
 
-	public HashMap<String, Plane> plane = new HashMap<String, Plane>();
+	public HashMap<String, Plane> planes = new HashMap<String, Plane>();
 	
 	private HashMap<String, User> reservation = new HashMap<String, User>(); 
 	
@@ -14,32 +14,32 @@ public class PlaneManager {
 		return reservation.get(reservationId);
 	}
 	
-	public void reserve(User u, Plane p, SeatPosition pos, SeatType type) {
-		String reservationID = ReservationID.generateID(p, pos, type);
+	public void reserve(User user, Plane plane, SeatPosition pos, SeatType type) {
+		String reservationID = ReservationID.generateID(plane, pos, type);
 		
-		if(!u.reservationID.contains(reservationID)) { 
-			u.reservationID.add(reservationID);
+		if(!user.reservationID.contains(reservationID)) { 
+			user.reservationID.add(reservationID);
 		}
 		
-		p.getClass(pos.index).setSeatType(pos.row, pos.col, type); 
+		plane.getClass(pos.index).setSeatType(pos.row, pos.col, type); 
 	} 
 	
-	public void reserve(User u, String reservationId) {
-		Plane p = plane.get(ReservationID.getPlaneID(reservationId));
+	public void reserve(User user, String reservationId) {
+		Plane plane = planes.get(ReservationID.getPlaneID(reservationId));
 		
-		reserve(u, p, p.getSeatPosition(ReservationID.getSeatID(reservationId)), ReservationID.getSeatType(reservationId));
+		reserve(user, plane, plane.getSeatPosition(ReservationID.getSeatID(reservationId)), ReservationID.getSeatType(reservationId));
 	} 
 	
 	public void cancel(String reservationId) {   
-		User u = reservation.get(reservationId);
+		User user = reservation.get(reservationId);
 		
-		Plane p = plane.get(ReservationID.getPlaneID(reservationId));
+		Plane plane = planes.get(ReservationID.getPlaneID(reservationId));
 		
-		SeatPosition pos = p.getSeatPosition(ReservationID.getSeatID(reservationId));
+		SeatPosition pos = plane.getSeatPosition(ReservationID.getSeatID(reservationId));
 		
-		u.reservationID.remove(reservationId);
+		user.reservationID.remove(reservationId);
 		  
-		p.getClass(pos.index).setSeatType(pos.row, pos.col, SeatType.NONE);
+		plane.getClass(pos.index).setSeatType(pos.row, pos.col, SeatType.NONE);
 		
 		reservation.remove(reservationId); 
 	}  

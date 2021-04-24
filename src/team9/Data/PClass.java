@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
  
 // 비행기 클래스(등급)의 객체를 생성하기 위한 클래스(원형)
@@ -102,8 +103,75 @@ public class PClass {
 	//		 public METHODs
 	//
 	//***************************
-	
-	//NOTHING
+
+	public String toString(int startIndex, boolean alsoReservation) {  
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("  ");
+		for(int i = 0; i < getColCount(); i++) {
+			sb.append(String.format("%2d", i + 1));
+		}
+		sb.append("\n");  
+		
+		int index = 0;
+		
+		for(int i = 0; i <= getRowCount(); i++) { 
+			
+			boolean isWIN = false;
+			while(index < element.size() && element.get(index).getIndex() <= i) { 
+				switch(element.get(index).getType()) {
+				case EXIT: 
+					sb.append("<EXIT\n");
+					break;
+				case LAV:
+					sb.append("화장실\n");
+					break;
+				case WIN:
+					isWIN = true;
+					break; 
+				} 
+				index++;
+			}
+			
+			if(i == getRowCount()) {
+				break;
+			}
+			
+			// 현재 행이 창문석인 경우 문자 'ㅣ'를 출력합니다.
+			if(isWIN) { 
+				sb.append(String.format("%cㅣ", 'a' + startIndex + i));  
+			}
+			else { 
+				sb.append(String.format("%-2c", 'a' + startIndex + i ));  
+			} 
+			
+			for(int j = 0; j < getColCount(); j++) {
+				if(alsoReservation) {
+					if(isAvailable[i][j]) {
+						if(seatType[i][j] == SeatType.NONE) { 
+							sb.append(String.format("%2c", 'o'));
+							}
+						else {
+							sb.append(String.format("%2c", (seatType[i][j] == SeatType.CHILD) ? 'c' : 'x')); 
+						}
+					}
+					else {
+						sb.append(String.format("%2c", ' '));
+					}
+				}
+				else { 
+					sb.append(String.format("%2c", isAvailable[i][j] ? 'o' : ' '));
+				}
+			}
+			
+			// 현재 행이 창문석인 경우 문자 'ㅣ'를 출력합니다.
+			if(isWIN) sb.append(" ㅣ"); 
+			
+			sb.append("\n");
+		}
+		
+		return sb.toString();
+	} 
 
 	//***************************
 	//		    METHODs
@@ -172,70 +240,12 @@ public class PClass {
 		result.isAvailable = seat.toArray(new boolean[seat.size()][]);
 		result.seatType = new SeatType[result.getRowCount()][result.getColCount()];
 		
+		for(int i = 0; i < result.getRowCount(); i++) {
+			for(int j = 0; j < result.getColCount(); j++) {
+				result.seatType[i][j] = SeatType.NONE;
+			}
+		}
+		
 		return result; 
-	} 
-
-	/** 해당 비행기 클래스의 좌석 배치를 보여줍니다. 
-	 * @param withReservation 예약 정보도 표시할지에 대한 여부입니다. */
-	protected void show(int startIndex, boolean alsoReservation) {  
-		System.out.print("  ");
-		for(int i = 0; i < getColCount(); i++) {
-			System.out.printf("%2d", i + 1);
-		}
-		System.out.println();  
-		
-		int index = 0;
-		
-		for(int i = 0; i <= getRowCount(); i++) { 
-			
-			boolean isWIN = false;
-			while(index < element.size() && element.get(index).getIndex() <= i) { 
-				switch(element.get(index).getType()) {
-				case EXIT: 
-					System.out.println("<EXIT");
-					break;
-				case LAV:
-					System.out.println("화장실");
-					break;
-				case WIN:
-					isWIN = true;
-					break; 
-				} 
-				index++;
-			}
-			
-			if(i == getRowCount()) {
-				break;
-			}
-			
-			// 현재 행이 창문석인 경우 문자 'ㅣ'를 출력합니다.
-			if(isWIN) { 
-				System.out.printf("%cㅣ", 'a' + startIndex + i );  
-			}
-			else { 
-				System.out.printf("%-2c", 'a' + startIndex + i );  
-			} 
-			
-			for(int j = 0; j < getColCount(); j++) {
-				if(alsoReservation) {
-					if(isAvailable[i][j]) {
-						if(seatType[i][j] == SeatType.NONE) { 
-							System.out.printf("%2c", 'o');
-							}
-						else {
-							System.out.printf("%2c", (seatType[i][j] == SeatType.CHILD) ? 'c' : 'x'); 
-						}
-					}
-				}
-				else { 
-					System.out.printf("%2c", isAvailable[i][j] ? 'o' : ' ');
-				}
-			}
-			
-			// 현재 행이 창문석인 경우 문자 'ㅣ'를 출력합니다.
-			if(isWIN) System.out.print(" ㅣ"); 
-			
-			System.out.println();
-		}
-	} 
+	}  
 }

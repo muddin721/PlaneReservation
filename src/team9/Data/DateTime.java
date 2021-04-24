@@ -34,7 +34,7 @@ public class DateTime extends Date{
 			throw new ParseException("파싱 오류", -1);
 		}
 		return new DateTime(format.parse(string)); 
-	}
+	} 
 	
 	@Override
 	public String toString() {

@@ -1,5 +1,5 @@
 package team9;
-
+  
 import team9.Data.*;
 
 public class Program { 
@@ -10,6 +10,8 @@ public class Program {
 		Menu menu = new Menu(rData);
 		
 		menu.show();
+		
+		rData.save(); 
 	}
 	
 }

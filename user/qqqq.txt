@@ -1,0 +1,7 @@
+birthday=01-07-21 12:00
+password=asdf1234
+reservationID=
+name=홍홍홍
+id=qqqq
+isAdministrator=false
+mileage=0

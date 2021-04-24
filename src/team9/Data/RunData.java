@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.*;
 
 public class RunData { 
-	public HashMap<String, User> user = new HashMap<String, User>();
+	public HashMap<String, User> users = new HashMap<String, User>();
 	
 	private PlaneManager planeManager = new PlaneManager();
 	 
@@ -59,35 +59,35 @@ public class RunData {
 	/** 입력받은 데이터를 이용해서 사용자와 비행기 정보 객체를 생성합니다. */
 	public void parse(Data[] userData, Data[] planeData) {
 		for(int i = 0; i < userData.length; i++) {
-			User u = User.parse(userData[i]);
-			user.put(u.getID(), u);
+			User user = User.parse(userData[i]);
+			users.put(user.getID(), user);
 		}
 		
 		for(int i = 0; i < planeData.length; i++) {
-			Plane p = Plane.parse(planeData[i]);
-			planeManager.plane.put(p.getID(), p);
+			Plane plane = Plane.parse(planeData[i]);
+			planeManager.planes.put(plane.getID(), plane);
 		}
 		
-		for(String key : user.keySet()) {
-			for(int index = 0; index < user.get(key).getReservationIDCount(); index++) {
-				User u = user.get(key);
-				String id = u.getReservationID(index);
+		for(String key : users.keySet()) {
+			for(int index = 0; index < users.get(key).getReservationIDCount(); index++) {
+				User user = users.get(key);
+				String id = user.getReservationID(index);
 				 
-				planeManager.reserve(u, id);
+				planeManager.reserve(user, id);
 			}
 		}
 		
 	}
 
 	public void save() { 
-		/*
-		for(String key : user.keySet()) {
-			User u = user.get(key);
+		for(String key : users.keySet()) {
+			User user = users.get(key);
 			
-			Data data = User.parseToData(u);
+			Data data = User.parseToData(user);
 			
-			Data.write(data, new File(String.format("D:/test/%s.txt", user.get(key).getID())));
+			File file = new File(String.format("user/%s.txt", users.get(key).getID())); 
+			
+			Data.write(data, file);
 		}
-		*/
 	}
 }

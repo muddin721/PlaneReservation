@@ -1,8 +1,6 @@
 package team9.Data; 
 
-import java.text.ParseException; 
-import java.util.*;
- 
+import java.text.ParseException;  
 
 class SeatPosition {
 	public int index, row, col;
@@ -43,11 +41,11 @@ public class Plane {
 		return id;
 	}
 
-	public Date getDepartureTime() {
+	public DateTime getDepartureTime() {
 		return departureTime;
 	}
 
-	public Date getArrivalTime() {
+	public DateTime getArrivalTime() {
 		return arrivalTime;
 	}
 
@@ -81,22 +79,9 @@ public class Plane {
 	//
 	//***************************
   
-	public void showClass(int index, boolean alsoReservation) {
-		int total = 0;
-		
-		for(int i = 0; i <= index; i++) {
-			if(i == index) { 
-				pClass[index].show(total, alsoReservation);
-				
-				return;
-			}
-			total += pClass[i].getRowCount();
-		}
-	} 
-	
 	/** 좌석 번호로부터 좌석의 위치를 얻어 반환합니다. */
 	public SeatPosition getSeatPosition(String seatID) {
-		int index = 0, row = seatID.charAt(0) - 'A', col = seatID.charAt(1) - '0';
+		int index = 0, row = seatID.charAt(0) - 'a', col = seatID.charAt(1) - '0';
 	 
 		while(row >= pClass[index].getRowCount()) { 
 			row -= pClass[index++].getRowCount();
@@ -130,11 +115,43 @@ public class Plane {
 		return id.equals(((Plane)o).id); 
 	}
 
-	//***************************
-	//		    METHODs
-	//
-	//***************************
-
+	public String toString(int index, boolean alsoReservation) {
+		int total = 0;
+		
+		for(int i = 0; i <= index; i++) {
+			if(i == index) {  
+				return pClass[index].toString(total, alsoReservation);
+			}
+			total += pClass[i].getRowCount();
+		}
+		
+		return null;
+	} 
+	
+	public String toString(boolean alsoReservation) {
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append(String.format("1) 출발지 : %s\n", this.departure));
+		sb.append(String.format("2) 도착지 : %s\n", this.arrival));
+		sb.append(String.format("3) 출발시간 : %s\n", this.departureTime.toString()));
+		sb.append(String.format("4) 도착시간 : %s\n", this.arrivalTime));
+		
+		sb.append("좌석배치\n");
+		
+		for(int i = 0; i < pClass.length; i++) {
+			sb.append(pClass[i].getName());
+			sb.append("\n"); 
+			sb.append(toString(i, alsoReservation));
+		}
+		
+		return sb.toString();
+	} 
+	
+	@Override
+	public String toString() {
+		return toString(false);
+	}
+	
 	//***************************
 	//		    METHODs
 	//
