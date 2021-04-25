@@ -1,0 +1,12 @@
+birthday=010721
+password=asdf1234
+reservationID=>
+	L9-210329-g2-a
+	L9-210329-g1-a
+	L9-210329-g5-a
+	L9-210329-g4-a
+	L9-210329-h2-a
+name=김희준
+id=muddin721
+isAdministrator=false
+mileage=200000

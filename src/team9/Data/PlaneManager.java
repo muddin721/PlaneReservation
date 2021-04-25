@@ -14,8 +14,10 @@ public class PlaneManager {
 		return reservation.get(reservationId);
 	}
 	
-	public void reserve(User user, Plane plane, SeatPosition pos, SeatType type) {
+	public void reserve(User user, Plane plane, Plane.SeatPosition pos, SeatType type) {
 		String reservationID = ReservationID.generateID(plane, pos, type);
+		
+		reservation.put(reservationID, user);
 		
 		if(!user.reservationID.contains(reservationID)) { 
 			user.reservationID.add(reservationID);
@@ -35,7 +37,7 @@ public class PlaneManager {
 		
 		Plane plane = planes.get(ReservationID.getPlaneID(reservationId));
 		
-		SeatPosition pos = plane.getSeatPosition(ReservationID.getSeatID(reservationId));
+		Plane.SeatPosition pos = plane.getSeatPosition(ReservationID.getSeatID(reservationId));
 		
 		user.reservationID.remove(reservationId);
 		  

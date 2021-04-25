@@ -1,6 +1,7 @@
 package team9;
 
 import java.text.ParseException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import team9.Data.*;
@@ -37,7 +38,7 @@ public class Menu {
 				loginMenu();
 				break;
 			case 3:
-
+				NonUserReserveCheckMenu();
 				break;
 			case 4:
 				break LOOP;
@@ -51,7 +52,7 @@ public class Menu {
     private void userMenu() {
 
 		LOOP : while(true) {
-	        System.out.println("1) 예약    2) 예약 확인    3) 예약 변경    4) 예약 취소    5)로그아웃");
+	        System.out.println("1) 예약    2) 예약 확인    3) 예약 변경    4) 예약 취소    5) 로그아웃");
 			
 			int input = scanner.nextInt();
 			
@@ -62,7 +63,7 @@ public class Menu {
 				reserveMenu();
 				break;
 			case 2: 
-
+				reserveCheckMenu();
 				break;
 			case 3:
 				reserveChangeMenu();
@@ -107,7 +108,7 @@ public class Menu {
 		}   
     }
     
-	private void reserveMenu() {
+    private void reserveMenu() {
 		PlaneManager manager = rData.getPlaneManager();
 		
 		var planes = manager.planes;
@@ -115,74 +116,216 @@ public class Menu {
 		
 		String[] keys = keySet.toArray(new String[keySet.size()]);
 		
+		if(planes.size() == 0) {
+			System.out.println("예약 가능한 비행기가 존재하지 않습니다."); 
+		    System.out.print("계속하려면 아무키나 입력하세요 : ");
+   
+		    scanner.nextLine();
+		    
+		    return;
+		}
+		
 		for(int i = 0; i < keys.length; i++) { 
 			Plane plane = planes.get(keys[i]);
 			
-			System.out.printf("%d) %s || 목적지 : %s || 출발시간 : %s || 도착시간 : %s \n", i + 1, plane.getName(), plane.getDeparture(), plane.getDepartureTime().toString(), plane.getArrivalTime().toString());
+			System.out.printf("%d) %s ||  %s -> %s  || 출발시간 : %s || 도착시간 : %s \n", i + 1, plane.getID(), plane.getDeparture(), plane.getArrival(), plane.getDepartureTime().toString(), plane.getArrivalTime().toString());
 			System.out.println("=========================================================================");
 		}
 		
-		System.out.print("예약할 비행기를 선택해주세요 : ");
-		int input = scanner.nextInt() - 1; scanner.nextLine();
+		Plane plane;
 		
-		Plane plane = planes.get(keys[input]);
-		
-		System.out.println("비행기 클래스를 선택해주세요 : ");
+		while(true) {
+			System.out.print("예약할 비행기를 선택해주세요 : ");
+			
+			try { 
+				int input = scanner.nextInt() - 1; scanner.nextLine();
+
+				if(0 <= input && input < planes.size()) { 
+					plane = planes.get(keys[input]);
+					
+					break; 
+				}
+				
+				System.out.println("해당 비행기는 존재하지 않습니다.");
+			}
+			catch(InputMismatchException e) { 
+				scanner.nextLine();
+				
+				System.out.println("올바른 입력을 해주시기 바랍니다.");
+			}
+		} 
+
 		for(int i = 0 ; i < plane.getClassCount(); i++) {
 			System.out.println("=============");
 			System.out.println(plane.getClass(i).getName());
 			System.out.println("=============");
 			
 			System.out.print(plane.toString(i, true));
-		} 
-
-		System.out.print("좌석 번호를 입력해주세요 : ");
+		}
+		  
+		String seatID;
+		Plane.SeatPosition pos; 
+		PClass pClass; 
 		
-		String seatID = scanner.nextLine();
+		while(true) {
+			System.out.print("좌석 번호를 입력해주세요 : ");
+			
+			seatID = scanner.nextLine();
+			
+			if(ReservationID.isValidSeatID(seatID)) { 
+				
+				pos = plane.getSeatPosition(seatID); 
+				
+				if(pos != null) {
+					pClass = plane.getClass(pos.index); 
+					
+					if(plane.getClass(pos.index).isAvailable(pos.row, pos.col)) {  
+						if(pClass.getSeatType(pos.row, pos.col) == SeatType.NONE) {
+							break;
+						} 
+						else {
+							System.out.println("이미 예약 완료된 좌석입니다.");
+							
+							continue;
+						}
+					}
+				} 
+				System.out.println("해당 좌석은 존재하지 않습니다.");   
+			} 
+			else { 
+				System.out.println("문법규칙을 지켜 입력해주십시오.");
+			}
+		}
 		
-		var pos = plane.getSeatPosition(seatID);
+		while(true) {
+			System.out.print("승객 나이를 입력해주세요 : ");
+			
+			try {
+				int age = scanner.nextInt(); scanner.nextLine();
+				
+				if(1 <= age && age < 100) { 
+					
+					int price = pClass.getPrice();
+					
+					while(true) {
+						System.out.println("총 " + price + "원입니다. 결제하시겠습니까? (y/n)");
+						String payment = scanner.nextLine();
+						
+						if(payment.equals("y")||payment.equals("Y")) {
+							System.out.println("결제가 완료되었습니다.");
+							
+							manager.reserve(rData.currentUser, plane, pos, (age > 11) ? SeatType.ADULT : SeatType.CHILD); 
+							 
+							rData.currentUser.addMileage((int)Math.round((double)price * 0.1));
+							 
+							rData.save();
+							
+							return;
+						}
+						else if(payment.equals("n")||payment.equals("N")) {
+							System.out.println("결제가 취소되었습니다.");
+							
+							return; 
+						}
+						else {
+							System.out.println("입력이 올바르지 않습니다."); 
+						}
+					} 		
+				}
+				else { 
+					System.out.println("1~99 사이의 숫자를 입력해주세요"); 
+				}  
+			}
+			catch(InputMismatchException e) { 
+				scanner.nextLine();
+				
+				System.out.println("올바른 입력을 해주시기 바랍니다.");
+			}
+		}
+	}  
+    
+    private void NonUserReserveCheckMenu() {
+    	PlaneManager manager = rData.getPlaneManager();
 		
-		System.out.print("승객 나이를 입력해주세요 : ");
-		int age = scanner.nextInt(); scanner.nextLine();
+		User found;
 		 
-		manager.reserve(rData.currentUser, plane, pos, (age > 11) ? SeatType.ADULT : SeatType.CHILD); 	
-		
-		rData.save();
+		System.out.print("예약 번호 : ");
+		String reserveID = scanner.nextLine();
+		    
+		if(!ReservationID.isValid(reserveID) ) {
+			System.out.println("올바른 입력을 해주시기 바랍니다."); 
+		    System.out.print("계속하려면 아무키나 입력하세요 : ");
+   
+		    scanner.nextLine();
+		    
+		    return;
+		}
+		    
+		if((found = manager.getReservation(reserveID)) != null) {
+	    	String planeID = ReservationID.getPlaneID(reserveID);
+	    	
+	    	Plane plane = manager.planes.get(planeID);
+	    	
+	    	 System.out.print("1. 이름 :");
+	         System.out.println(manager.getReservation(reserveID).getName());
+	         
+	         System.out.print("2. 목적지 :");
+	         System.out.println(plane.getDeparture());
+		         
+	         System.out.print("3. 좌석번호 :");
+	         System.out.println(ReservationID.getSeatID(reserveID));
+		         
+	         System.out.print("4. 출발 날짜 :");
+	         System.out.println(plane.getDepartureTime().toString()); 
+	         
+	         return;
+		}  
+
+	    System.out.println("예약을 찾을 수 없습니다.");
 	}
-	
-	private void reserveCheck() {
+
+	private void reserveCheckMenu() {
 		PlaneManager manager = rData.getPlaneManager();
-		
+
 		User user = rData.currentUser;
 		User found;
-		
-	    System.out.print("예약 번호 : ");
-	    String reserveID = scanner.nextLine();
-	      
-	    if((found = manager.getReservation(reserveID)) != null) {
-	    	if(user.equals(found)) { 
+		 
+		System.out.print("예약 번호 : ");
+		String reserveID = scanner.nextLine();
+		    
+		if(!ReservationID.isValid(reserveID)) {
+			System.out.println("올바른 입력을 해주시기 바랍니다."); 
+		    System.out.print("계속하려면 아무키나 입력하세요 : ");
+   
+		    scanner.nextLine();
+		    
+		    return;
+		}
+		    
+		if((found = manager.getReservation(reserveID)) != null) {
+			if(user.equals(found)) { 
 		    	String planeID = ReservationID.getPlaneID(reserveID);
 		    	
 		    	Plane plane = manager.planes.get(planeID);
 		    	
-		    	 System.out.println("1. 이름 :");
-		         System.out.println(user.getName());
+		    	 System.out.print("1. 이름 :");
+		         System.out.println(manager.getReservation(reserveID).getName());
 		         
-		         System.out.println("2. 목적지 :");
+		         System.out.print("2. 목적지 :");
 		         System.out.println(plane.getDeparture());
-		         
-		         System.out.println("3. 좌석번호 :");
+			         
+		         System.out.print("3. 좌석번호 :");
 		         System.out.println(ReservationID.getSeatID(reserveID));
-		         
-		         System.out.println("4. 출발 날짜 :");
-		         plane.getDepartureTime().toString(); 
+			         
+		         System.out.print("4. 출발 날짜 :");
+		         System.out.println(plane.getDepartureTime().toString()); 
 		         
 		         return;
-	    	} 
-	    }
-	  
+			}
+		} 
+
 	    System.out.println("예약을 찾을 수 없습니다.");
-	   }
+	}
 	
 	private boolean reserveCancelMenu() {
 		PlaneManager manager = rData.getPlaneManager();
@@ -226,108 +369,141 @@ public class Menu {
 		}		
 	}
 
-    private void registerMenu() { 
-	        String name, id, password, birthday;
-	        DateTime nBirthday;
-	        
-			while(true) {
-				System.out.print("아이디를 입력하세요 : ");
-				id = scanner.nextLine();
-				
-				if(rData.users.containsKey(id)) { 
-					System.out.println("중복되는 아이디입니다.");
-					
-					continue;
-				}
-				else { 
-					if(User.checkID(id)) break; 
-				}
-				
-				System.out.println("아이디 형식에 부합하지 않습니다.");
-			}
-			
-			while(true) {
-				System.out.print("비밀번호를 입력하세요 : ");
-				password = scanner.nextLine();
-				
-				if(User.checkPassword(password)) break; 
-				
-				System.out.println("비밀번호 형식에 부합하지 않습니다.");
-			}
-			
-			System.out.print("이름을 입력하세요 : ");
-			name = scanner.nextLine(); 
-			
-			while (true) {
-                System.out.print("생년월일을 입력하세요 : ");
-                birthday = scanner.nextLine();
-                
-            	try {
-            		nBirthday = DateTime.parseDate(birthday);
-            		
-            		break;
-            	} catch (ParseException e){
-            	    System.out.println("생년월일 형식에 부합하지 않습니다.");
-        		} 
+	private void registerMenu() {
+        String name, id, password, birthday;
+        DateTime nBirthday;
+
+        
+        while (true) {
+            System.out.print("이름을 입력하세요 : ");
+            name = scanner.nextLine();
+
+            if (User.checkName(name)) break;
+
+            System.out.println("이름 형식에 부합하지 않습니다.");
+        }
+
+        while (true) {
+            System.out.print("생년월일을 입력하세요 : ");
+            birthday = scanner.nextLine();
+
+            try {
+                nBirthday = DateTime.parseDate(birthday);
+
+                break;
+            } catch (ParseException e) {
+                System.out.println("생년월일 형식에 부합하지 않습니다.");
             }
-  
-			rData.users.put(id, new User(id, password, name, nBirthday));
-			
-			rData.save();
-			
-			System.out.println("회원가입이 완료되었습니다.");
+        }
+        
+        while (true) { 
+            System.out.print("아이디를 입력하세요 (8~16 글자의 영문, 숫자로 입력하세요) : ");
+            id = scanner.nextLine();
+
+            if (rData.users.containsKey(id)) {
+                System.out.println("중복되는 아이디입니다.");
+
+                continue;
+            }
+            else {
+                if (User.checkID(id)) break;
+            }
+
+            System.out.println("아이디 형식에 부합하지 않습니다.");
+        }
+
+        while (true) {
+            String passwordCheck; 
+            
+            System.out.print("비밀번호를 입력하세요 : ");
+            password = scanner.nextLine();
+
+            if (User.checkPassword(password)) {
+                System.out.print("비밀번호 확인 : ");
+                passwordCheck = scanner.nextLine();
+                if (passwordCheck.equals(password)) break;
+                else
+                {
+                    System.out.print("비밀번호 확인 실패했습니다.\n");
+                }
+            }
+            
+            System.out.println("비밀번호 형식에 부합하지 않습니다.");
+        } 
+        
+        rData.users.put(id, new User(id, password, name, nBirthday));
+
+        rData.save();
+
+        System.out.println("회원가입이 완료되었습니다.");
     }
 
-    private void loginMenu(){ 
-   	  System.out.print("아이디 : ");
-   	  
-   	  String id = scanner.nextLine();
-   	  
-   	  System.out.print("비밀번호 : ");
-   	  
-   	  String password = scanner.nextLine();
-   	  
-   	  if(rData.users.containsKey(id)) {
-   		  User user = rData.users.get(id);
-   		  
-   		  if(user.getPassword().equals(password)) {
-   			  
-   			rData.currentUser = user;
-   			  
-   			if(user.isAdministrator()) {
-   				adminMenu();
-   			}
-   			else {
-   				userMenu();
-   			}
-   		  }
-   		  else {
-   			  System.out.println("비밀번호가 일치하지 않습니다.");
-   		  }
-   	  }
-   	  else {
-   		  System.out.println("아이디가 일치하지 않습니다.");
-   	  }
-	}
+    private void loginMenu() {
+
+        System.out.print("아이디 : ");
+        String id = scanner.nextLine();
+        
+        String password;
+        int passwordCount = 0; 
+
+        if (rData.users.containsKey(id)) {
+            User user = rData.users.get(id);
+ 
+            do {
+            	 System.out.print("비밀번호 : ");
+                 password = scanner.nextLine();
+                 
+                 passwordCount += 1;
+                 
+                 if (passwordCount >= 5) {
+                     System.out.print("비밀번호 5회 오류입니다. 메뉴로 돌아갑니다.\n");
+                    
+                     return;
+                 }
+                 
+            } while(!user.getPassword().equals(password));
+            
+            if (user.getPassword().equals(password)) {
+
+                rData.currentUser = user;
+
+                if (user.isAdministrator()) {
+                    adminMenu();
+                } else {
+                    userMenu();
+                }
+            } else {
+                System.out.println("비밀번호가 일치하지 않습니다.");
+            }
+        } else {
+            System.out.println("아이디가 일치하지 않습니다.");
+        }
+    }
 
     private boolean logoutMenu() {
-     	System.out.println("로그아웃 하시겠습니까?(y/n))");
-     	
-   		String input = scanner.nextLine(); //예외처리
-   		
-   		char c = input.charAt(0);
-   		
-   		if(c == 'y' || c == 'Y') {
-   			System.out.println("로그아웃 되었습니다.");
+		
+   		while(true)
+   		{
+   			System.out.println("로그아웃 하시겠습니까?(y/n))");
    			
-   			rData.currentUser = null;
+   	   		String input = scanner.nextLine(); //예외처리		
+   	   		char c = input.charAt(0);
    			
-   			return true;
-   		}
-   		else {
-   			System.out.println("메인으로 돌아갑니다.");
-   			
-  			return false;
+			if (c == 'y' || c == 'Y') {
+				System.out.println("로그아웃 되었습니다.");
+
+				rData.currentUser = null;
+				return true;
+			}
+
+			else if (c == 'n' || c == 'N') {
+				System.out.println("로그아웃 취소되었습니다.");
+				return false;
+			}
+
+			else {
+				System.out.println("입력이 올바르지 않습니다.");
+			}
    		}
    	} 
     
@@ -345,27 +521,58 @@ public class Menu {
  	    }
  	    
  	    System.out.print("비행기를 선택해주세요 : ");
- 	    int input = scanner.nextInt() - 1; scanner.nextLine();
  	    
- 	    Plane plane = planes.get(keys[input]);
+ 	    int input = 0;
  	    
- 	    System.out.printf(plane.toString());
- 	    
- 	    System.out.print("계속하려면 아무키나 입력하세요 : ");
- 	    
-	    scanner.nextLine();
+ 	    try {
+			input = scanner.nextInt() - 1;
+			scanner.nextLine();
+			if (input < keys.length && input >= 0) {
+				Plane plane = planes.get(keys[input]);
+
+				System.out.printf(plane.toString());
+			}
+
+			else {
+				System.out.println("존재하지 않는 번호입니다.");
+			}
+
+			System.out.print("계속하려면 아무키나 입력하세요 : ");
+
+			scanner.nextLine();
+ 	    }
+ 	    catch(InputMismatchException e)
+ 	    {
+ 	    	scanner.nextLine();
+ 	    	
+ 	    	System.out.println("정수를 입력하시길 바랍니다.");
+ 	    }
     }
 
     private void userInfoMenu() {
   	   System.out.print("아이디를 입력하세요 : ");
   	   String id = scanner.nextLine();
+  	  
+  	   var KeySet = rData.users.keySet();
+  	   String[] keys = KeySet.toArray(new String[KeySet.size()]);
   	   
-  	   User user = rData.users.get(id);
-  
-  	   System.out.printf(user.toString());
-	    
+  	   int temp=0;
+  	   
+  	   for(int i=0; i < keys.length; i++)
+  	   {
+  		   if(rData.users.get(keys[i]).getID().equals(id))
+  		   {
+  			 User user = rData.users.get(id);
+  	  		System.out.printf(user.toString());
+  	  		temp++;
+  		   }
+  	   }
+  	   
+  	   if(temp == 0) System.out.println("존재하지 않는 아이디입니다."); 
+  		 	   
 	    System.out.print("계속하려면 아무키나 입력하세요 : ");
 	    
 	    scanner.nextLine();
      }    
+    
 }

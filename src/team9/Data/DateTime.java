@@ -22,17 +22,20 @@ public class DateTime extends Date{
 	
 	/** 날짜만 적혀있는 문자열을 파싱하여 객체로 만듭니다. */
 	public static DateTime parseDate(String string) throws ParseException {
-		SimpleDateFormat format;
-		
+		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");;
+
+		format.setLenient(false);
+
 		if(string.length() == 6) {
-			format = new SimpleDateFormat("yyMMdd");
+
+			if(string.matches("^[0-2]")){
+				string = "20" + string;
+			}
+			else{
+				string = "19" + string;
+			}
 		}
-		else if(string.length() == 8) {
-			format = new SimpleDateFormat("yyyyMMdd");
-		}
-		else {
-			throw new ParseException("파싱 오류", -1);
-		}
+
 		return new DateTime(format.parse(string)); 
 	} 
 	
@@ -48,7 +51,7 @@ public class DateTime extends Date{
 		SimpleDateFormat format;
 		 
 		if(showOnlyDate) {
-			format = new SimpleDateFormat("yyyy년 MM월 dd일"); 
+			format = new SimpleDateFormat("yyMMdd");
 		}
 		else { 
 			format = new SimpleDateFormat("yy-MM-dd hh:mm");

@@ -28,11 +28,11 @@ public class ReservationID {
 	} 
 	
 	public static String generateID(Plane plane, int index, int row, int col, SeatType type) {
-		return generateID(plane, new SeatPosition(index, row, col), type);
+		return generateID(plane, new Plane.SeatPosition(index, row, col), type);
 	}
 	
 	/** 지정된 좌석의 예약 번호를 반환합니다.*/
-	public static String generateID(Plane plane, SeatPosition pos, SeatType type) {
+	public static String generateID(Plane plane, Plane.SeatPosition pos, SeatType type) {
 		if(type == SeatType.NONE) {
 			return null;
 		}
@@ -40,4 +40,12 @@ public class ReservationID {
 		return String.format("%s-%s-%s-%c", plane.getID(), new SimpleDateFormat("yyMMdd").format(plane.getDepartureTime()),
 				plane.getSeatID(pos), (type == SeatType.ADULT) ? 'a' : 'c');
 	} 
+	
+	public static boolean isValid(String reservationID) {
+		return reservationID.matches("^[A-Z][0-9]-[0-9]{6}-[a-z][1-9]-[ac]$");
+	}
+	
+	public static boolean isValidSeatID(String SeatID) {
+		return SeatID.matches("^[a-z][1-9]$");
+	}
 }

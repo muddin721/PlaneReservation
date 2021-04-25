@@ -37,6 +37,10 @@ public class Data {
 		return data.keySet();
 	}
 	
+	private static boolean checkKey(String key) {
+		return key.matches("^([a-zA-Z_$]+)[\\w|_$]*$");
+	}
+	
 	protected static Data read(File file) {
 		var result = new Data();
 		
@@ -59,6 +63,12 @@ public class Data {
 				 if(s.endsWith("=>")) {
 					 String key = s.replace("=>", "");
 					
+					 if(!checkKey(key)) {
+						 System.out.println("오류 : 데이터 파일의 형식이 올바르지 않습니다. 프로그램을 종료합니다.");
+						 System.out.println(String.format("%s %d번째 행 : %s << 키의 형식이 올바르지 않습니다.\n", file.getName(), i + 1, line));
+						 System.exit(-1);
+					 }
+					 
 					 while ((line = reader.readLine()) != null) {
 						 // 현재 행에 '\t'문자가 존재하는 경우
 						 if(line.contains("\t")) {
@@ -92,6 +102,13 @@ public class Data {
 					 // '='문자를 기준으로 문자열을 둘로 나눕니다.
 					 String[] data = s.split("=", 2);
 					 // 해당 키를 가진 데이터가 존재하지 않으면 데이터를 추가합니다.
+					 
+					 if(!checkKey(data[0])) {
+						 System.out.println("오류 : 데이터 파일의 형식이 올바르지 않습니다. 프로그램을 종료합니다.");
+						 System.out.println(String.format("%s %d번째 행 : %s << 키의 형식이 올바르지 않습니다.\n", file.getName(), i + 1, line));
+						 System.exit(-1);
+					 }
+					 
 					 if(!result.data.containsKey(data[0])) { 
 						 result.data.put(data[0], data[1]);
 					 } 
@@ -101,14 +118,11 @@ public class Data {
 			 		
 			
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("인코딩 오류가 발생했습니다.");
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("파일이 존재하지 않습니다.");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("파일 읽기 오류가 발생했습니다.");
 		}
 		
 		return result;

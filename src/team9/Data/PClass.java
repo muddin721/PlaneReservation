@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
  
 // 비행기 클래스(등급)의 객체를 생성하기 위한 클래스(원형)
@@ -42,7 +41,8 @@ public class PClass {
 	//***************************
 	
 	private String name;
-
+	private int price;
+	
 	private boolean[][] isAvailable;
 	private SeatType[][] seatType; 
 	private List<Element> element = new ArrayList<Element>(); 
@@ -56,7 +56,11 @@ public class PClass {
 	public String getName() {
 		return name;
 	}
-
+ 
+	public int getPrice() {
+		return price;
+	}
+	
 	/** 행의 수를 반환합니다. */
 	public int getRowCount() {
 		return isAvailable.length;
@@ -95,8 +99,9 @@ public class PClass {
 		super();
 	}
  
-	private PClass(String name) {
+	private PClass(String name, int price) {
 		this.name = name;
+		this.price = price;
 	}
 	
 	//***************************
@@ -148,7 +153,7 @@ public class PClass {
 			for(int j = 0; j < getColCount(); j++) {
 				if(alsoReservation) {
 					if(isAvailable[i][j]) {
-						if(seatType[i][j] == SeatType.NONE) { 
+						if(seatType[i][j] == SeatType.NONE) {
 							sb.append(String.format("%2c", 'o'));
 							}
 						else {
@@ -179,8 +184,8 @@ public class PClass {
 	//***************************
 
 	/** 비행기 좌석 데이터 요소의 문자열을 파싱하여 객체로 만듭니다. */
-	protected static PClass parse(String name, String str) {
-		PClass result = new PClass(name);
+	protected static PClass parse(String name, int price, String str) {
+		PClass result = new PClass(name, price);
 		
 		List<boolean[]> seat = new ArrayList<boolean[]>();
 				

@@ -1,4 +1,4 @@
-birthday=00-01-01 12:00
+birthday=000101
 password=qwer1234
 reservationID=
 name=관리자

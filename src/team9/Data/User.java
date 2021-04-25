@@ -83,23 +83,40 @@ public class User {
 	//		    METHODs
 	//
 	//***************************
-  
-	/** 아이디가 형식에 부합하는지의 여부를 반환합니다. */
-	public static boolean checkID(String id) {
-		if(id.length() >= 1){
-			return true;
-		}
-		return false;
+
+	public void addMileage(int mileage) {
+		this.mileage += mileage;
 	}
 	
-	/** 비밀번호가 형식에 부합하는지의 여부를 반환합니다. */
-	public static boolean checkPassword(String password) {
-		if(8 <= password.length() && password.length()<= 16){
-			return true;
-		}
-		return false;
-	} 
-	
+    /**
+     * 아이디가 형식에 부합하는지의 여부를 반환합니다.
+     * 길이 8이상 16이하
+     * 영문자 숫자 허용
+     * 비개행 공백열 허용 안함
+     */
+    public static boolean checkID(String id) { 
+        return id.matches("^\\w{8,16}$");
+    }
+
+    /**
+     * 비밀번호가 형식에 부합하는지의 여부를 반환합니다.
+     * 길이 8이상 16이하
+     * 영문자 숫자 특수문자 허용
+     * 비개행 공백열 허용 안함
+     */
+    public static boolean checkPassword(String password) {
+    	return password.matches("^[^ㄱ-힣\\s]{8,16}$");
+    }
+
+    /**
+     * 이름이 형식에 부합하는지의 여부를 반환합니다.함
+     * 길이가 1이상
+     * 비개행 공백열, 영문자 한글 허용
+     */
+    public static boolean checkName(String name) {
+    	return name.matches("^[ㄱ-힣a-zA-Z\\s]+$");
+    }
+
 	/** 데이터로부터 유저 정보를 읽고 객체를 생성합니다. */
 	protected static User parse(Data data) {
 		User result = new User(); 
@@ -110,7 +127,7 @@ public class User {
 			result.name = data.get("name");
 			result.birthday = DateTime.parseDate(data.get("birthday")); 
 			result.mileage = Integer.parseInt(data.get("mileage"));
-			result.isAdministrator = data.get("admin").equals("true"); 
+			result.isAdministrator = data.get("isAdministrator").equals("true"); 
 	
 			String[] rID = data.get("reservationID").split("\n");
 			
@@ -123,13 +140,13 @@ public class User {
 			}
 		}
 		catch(KeyNotFoundException e) { 
-			e.printStackTrace();
+			System.out.println("오류 : 키가 존재하지 않습니다.");
 		}
 		catch(NumberFormatException e) { 
-			e.printStackTrace();
+			System.out.println("오류 : 숫자 입력이 잘못되었습니다.");
 		} 
 		catch (ParseException e) { 
-			e.printStackTrace();
+			System.out.println("오류 : 날짜 입력이 잘못되었습니다.");
 		}
 		
 		return result; 
@@ -141,7 +158,7 @@ public class User {
 		result.set("id", user.id);  
 		result.set("password", user.password);  
 		result.set("name", user.name);  
-		result.set("birthday", user.birthday.toString());
+		result.set("birthday", user.birthday.toString(true));
 		result.set("mileage", Integer.toString(user.mileage));  
 		result.set("isAdministrator", user.isAdministrator ? "true" : "false");
 

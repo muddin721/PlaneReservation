@@ -2,17 +2,17 @@ package team9.Data;
 
 import java.text.ParseException;  
 
-class SeatPosition {
-	public int index, row, col;
-	
-	public SeatPosition(int index, int row, int col) {
-		this.index = index;
-		this.row = row;
-		this.col = col;
-	}
-}
 
 public class Plane {	 
+	public static class SeatPosition {
+		public int index, row, col;
+		
+		public SeatPosition(int index, int row, int col) {
+			this.index = index;
+			this.row = row;
+			this.col = col;
+		}
+	}	
 	
 	//***************************
 	//		   VARIABLESs
@@ -78,21 +78,36 @@ public class Plane {
 	//		 public METHODs
 	//
 	//***************************
-  
+	
 	/** 좌석 번호로부터 좌석의 위치를 얻어 반환합니다. */
 	public SeatPosition getSeatPosition(String seatID) {
-		int index = 0, row = seatID.charAt(0) - 'a', col = seatID.charAt(1) - '0';
+		int index = 0, row = seatID.charAt(0) - 'a', col = seatID.charAt(1) - '1';
 	 
+	
 		while(row >= pClass[index].getRowCount()) { 
 			row -= pClass[index++].getRowCount();
+			
+			if(index >= pClass.length) {
+				return null;
+			}
 		}
 		 
-		return new SeatPosition(index, row, col);
+		var pos = new SeatPosition(index, row, col);
+	
+		if((0 <= pos.row && pos.row < pClass[pos.index].getRowCount()) &&
+				(0 <= pos.col && pos.col < pClass[pos.index].getColCount())) { 
+			return pos;
+		}
+		else return null;
 	}
 	
 	public String getSeatID(int index, int row, int col) {
 		return getSeatID(new SeatPosition(index, row, col));
 	} 
+	
+	public boolean checkSeatID(String seatID) { 
+		return getSeatPosition(seatID) == null;
+	}
 	
 	/** 지정된 좌석의 좌석 번호를 반환합니다.*/
 	public String getSeatID(SeatPosition pos) {
@@ -107,7 +122,7 @@ public class Plane {
 			total += pClass[i].getRowCount();
 		}
 		
-		return String.format("%c%d", 'a' + total, pos.col);
+		return String.format("%c%d", 'a' + total, pos.col + 1);
 	}
 
 	@Override
@@ -186,23 +201,24 @@ public class Plane {
 			
 			result.pClass = new PClass[Integer.parseInt(data.get("class_count"))]; 
 			String[] className = data.get("class_name").split("\n");
+			String[] classPrice = data.get("class_price").split("\n");
 			
 			for(int i = 0; i < result.pClass.length; i++) {
-				result.pClass[i] = PClass.parse(className[i], data.get(String.format("class_%d", i)));
+				result.pClass[i] = PClass.parse(className[i], Integer.parseInt(classPrice[i]), data.get(String.format("class_%d", i)));
 			} 
 		}
 		catch(KeyNotFoundException e) { 
-			e.printStackTrace();
+			System.out.println("오류 : 키가 존재하지 않습니다.");
 		}
 		catch(NumberFormatException e) { 
-			e.printStackTrace();
+			System.out.println("오류 : 숫자 입력이 잘못되었습니다.");
+		} 
+		catch (ParseException e) { 
+			System.out.println("오류 : 날짜 입력이 잘못되었습니다.");
 		}
 		catch(IndexOutOfBoundsException e) {  
-			e.printStackTrace();
+			System.out.println("오류 : 인덱스가 범위를 벗어났습니다.");
 		} 
-		catch (ParseException e) {
-			e.printStackTrace();
-		}
 		
 		return result; 
 	}

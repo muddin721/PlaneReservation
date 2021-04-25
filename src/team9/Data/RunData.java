@@ -21,8 +21,9 @@ public class RunData {
 
 			parse(userData, planeData); 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("오류 : 데이터 파일을 찾을 수 없습니다. 프로그램을 종료합니다.");
+			
+			System.exit(-1);
 		}   
 	}
 	
