@@ -150,10 +150,45 @@ public class Menu {
 		rData.save();
 	}
 	
+	private void reserveCheck() {
+		PlaneManager manager = rData.getPlaneManager();
+		
+		User user = rData.currentUser;
+		User found;
+		
+	    System.out.print("예약 번호 : ");
+	    String reserveID = scanner.nextLine();
+	      
+	    if((found = manager.getReservation(reserveID)) != null) {
+	    	if(user.equals(found)) { 
+		    	String planeID = ReservationID.getPlaneID(reserveID);
+		    	
+		    	Plane plane = manager.planes.get(planeID);
+		    	
+		    	 System.out.println("1. 이름 :");
+		         System.out.println(user.getName());
+		         
+		         System.out.println("2. 목적지 :");
+		         System.out.println(plane.getDeparture());
+		         
+		         System.out.println("3. 좌석번호 :");
+		         System.out.println(ReservationID.getSeatID(reserveID));
+		         
+		         System.out.println("4. 출발 날짜 :");
+		         plane.getDepartureTime().toString(); 
+		         
+		         return;
+	    	} 
+	    }
+	  
+	    System.out.println("예약을 찾을 수 없습니다.");
+	   }
+	
 	private boolean reserveCancelMenu() {
 		PlaneManager manager = rData.getPlaneManager();
 		 
 		User user = rData.currentUser;
+		User found;
 		
 		System.out.println("사용자의 예약번호 리스트입니다.");
 		
@@ -162,22 +197,20 @@ public class Menu {
 		}
 		
 		System.out.print("예약번호 : ");
-		String reserveId = scanner.nextLine();
+		String reserveID= scanner.nextLine();
 		
 		boolean hasReserveNum = false;
 		
-		for(int i =0; i < user.getReservationIDCount();i++) {
-			if(reserveId.equals(user.getReservationID(i))) {
-				System.out.println("예약이 취소되었습니다.");
-				manager.cancel(reserveId);
-				
-				hasReserveNum = true;
-				
-				rData.save();
-				
-				break;
-			}
-		}
+		if((found = manager.getReservation(reserveID)) != null) {
+			 if(user.equals(found)) {
+					System.out.println("예약이 취소되었습니다.");
+					manager.cancel(reserveID);
+					
+					hasReserveNum = true;
+					
+					rData.save(); 
+			 }
+		}  
 		
 		if(hasReserveNum == false) {
 			System.out.println("취소할 비행이 없습니다. 예약 번호를 다시 확인해주세요"); 
